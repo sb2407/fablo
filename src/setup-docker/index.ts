@@ -68,6 +68,9 @@ export default class SetupDockerGenerator extends Generator {
     this._copyCommandsGeneratedScript(config);
     this._copyUtilityScripts(config.global.capabilities);
 
+    // ======= metrics ==================================================================
+    this._copyMetricsDir(config);
+
     // ======= hooks ====================================================================
     this._copyHooks(config.hooks);
 
@@ -232,4 +235,19 @@ export default class SetupDockerGenerator extends Generator {
       hooks,
     });
   }
+
+  _copyMetricsDir(config: FabloConfigExtended): void {
+    this.fs.copyTpl(this.templatePath("metrics/prometheus.yml"), this.destinationPath("metrics/prometheus.yml"), {
+      orgs: config.orgs,
+    });
+    this.fs.copyTpl(
+      this.templatePath("metrics/grafana/datasources/datasource.yml"),
+      this.destinationPath("metrics/grafana/datasources/datasource.yml"),
+      {
+        orgs: config.orgs,
+      },
+    );
+  }
 }
+
+// netstat -an tcp | grep LISTEN | grep 3000

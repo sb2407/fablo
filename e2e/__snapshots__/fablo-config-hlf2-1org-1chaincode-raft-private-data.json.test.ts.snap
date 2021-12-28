@@ -742,6 +742,10 @@ services:
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_LISTENPORT=7030
       - ORDERER_GENERAL_GENESISMETHOD=file
+      # metrics
+      - ORDERER_OPERATIONS_LISTENADDRESS=orderer0.group1.orderer.example.com:9444
+      - ORDERER_METRICS_PROVIDER=prometheus
+      #
       - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/config/Group1Genesis.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
@@ -757,6 +761,7 @@ services:
     working_dir: /var/hyperledger/orderer
     command: orderer
     ports:
+      - 8030:9444
       - 7030:7030
     volumes:
       - ../fabric-config/config/:/var/hyperledger/config
@@ -858,6 +863,9 @@ services:
       - CORE_CHAINCODE_LOGGING_LEVEL=\${LOGGING_LEVEL}
       - CORE_CHAINCODE_LOGGING_SHIM=\${LOGGING_LEVEL}
       - FABRIC_LOGGING_SPEC=\${LOGGING_LEVEL}
+      # metrics
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.org1.example.com:9440
+      - CORE_METRICS_PROVIDER=prometheus
       #
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=\${COMPOSE_PROJECT_NAME}_basic
       - CORE_VM_DOCKER_ATTACHSTDOUT=true
@@ -876,6 +884,7 @@ services:
     working_dir: /etc/hyperledger/fabric/peer/
     command: peer node start
     ports:
+      - 8041:9440
       - 7041:7041
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
@@ -894,6 +903,35 @@ services:
       - COUCHDB_PASSWORD=peer0Password
     ports:
       - 5100:5984
+    networks:
+      - basic
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    tty: true
+    volumes:
+      - ../metrics/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 4010:9090
+    networks:
+      - basic
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    environment:
+      - GF_AUTH_PROXY_ENABLED=true
+      - GF_PATHS_PROVISIONING=/var/lib/grafana/provisioning/
+    volumes:
+      - ../metrics/grafana:/var/lib/grafana/provisioning/
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
     networks:
       - basic
 "
@@ -1953,6 +1991,95 @@ perl -i -pe 's/MaxMessageCount: 10/MaxMessageCount: 1/g' \\"./fablo-target/fabri
 "
 `;
 
+exports[`samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json should create proper e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/metrics/grafana/datasources/datasource.yml from samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json 1`] = `
+"apiVersion: 1
+datasources:
+- name: Prometheus
+  type: prometheus
+  url: http://prometheus:9090# config file version
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+  # <string, required> name of the datasource. Required
+- name: Prometheus
+  # <string, required> datasource type. Required
+  type: prometheus
+  # <string, required> access mode. direct or proxy. Required
+  access: proxy
+  # <int> org id. will default to orgId 1 if not specified
+  orgId: 1
+  # <string> url
+  url: http://prometheus:9090
+  # <string> database password, if used
+  password:
+  # <string> database user, if used
+  user:
+  # <string> database name, if used
+  database:
+  # <bool> enable/disable basic auth
+  basicAuth: false
+  # <string> basic auth username, if used
+  basicAuthUser:
+  # <string> basic auth password, if used
+  basicAuthPassword:
+  # <bool> enable/disable with credentials headers
+  withCredentials:
+  # <bool> mark as default datasource. Max one per org
+  isDefault: true
+  # <map> fields that will be converted to json and stored in json_data
+  jsonData:
+     graphiteVersion: \\"1.1\\"
+     tlsAuth: false
+     tlsAuthWithCACert: false
+  # <string> json object of data that will be encrypted.
+  secureJsonData:
+    tlsCACert: \\"...\\"
+    tlsClientCert: \\"...\\"
+    tlsClientKey: \\"...\\"
+  version: 1
+  # <bool> allow users to edit datasources from the UI.
+  editable: true
+  isDefault: true
+  access: proxy
+  editable: true
+"
+`;
+
+exports[`samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json should create proper e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/metrics/prometheus.yml from samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json 1`] = `
+"global:
+  scrape_interval: 7s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 7s # Evaluate rules every 15 seconds. The default is every 1 minute.
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+rule_files:
+scrape_configs:
+  - job_name: \\"prometheus\\"
+    static_configs:
+      - targets: [\\"localhost:9090\\"]
+
+#=============Orderer==========================
+  - job_name: \\"Org: Orderer, orderer: orderer0.group1\\"
+    static_configs:
+      - targets: [\\"orderer0.group1.orderer.example.com:9444\\"]
+
+#=============Org1==========================
+  - job_name: \\"Org: Org1, peer: peer0\\"
+    static_configs:
+      - targets: [\\"peer0.org1.example.com:9440\\"]
+
+"
+`;
+
 exports[`samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json should create proper files from samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json 1`] = `
 Array [
   "e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/fabric-config/.gitignore",
@@ -1976,5 +2103,7 @@ Array [
   "e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/fabric-docker/scripts/cli/channel_fns.sh",
   "e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/fabric-docker/snapshot-scripts.sh",
   "e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/hooks/post-generate.sh",
+  "e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/metrics/grafana/datasources/datasource.yml",
+  "e2e/__tmp__/samples/fablo-config-hlf2-1org-1chaincode-raft-private-data.json.tmpdir/fablo-target/metrics/prometheus.yml",
 ]
 `;

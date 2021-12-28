@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 7s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 7s # Evaluate rules every 15 seconds. The default is every 1 minute.
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+rule_files:
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+<%_ orgs.forEach(function(org){ _%>
+#=============<%= org.name %>==========================
+  <%_ org.ordererGroups.forEach(function(ordererGroup){ _%>
+  <%_ ordererGroup.orderers.forEach(function(orderer){ _%>
+  - job_name: "Org: <%= org.name %>, orderer: <%= orderer.name %>"
+    static_configs:
+      - targets: ["<%= orderer.address %>:9444"]
+
+  <%_ }) _%>
+  <%_ }) _%>  
+  <%_ org.peers.forEach(function(peer){ _%>
+  - job_name: "Org: <%= org.name %>, peer: <%= peer.name %>"
+    static_configs:
+      - targets: ["<%= peer.address %>:9440"]
+
+  <%_ }) _%>
+<%_ }) _%>

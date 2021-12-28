@@ -185,6 +185,10 @@ services:
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_LISTENPORT=<%= orderer.port %>
       - ORDERER_GENERAL_GENESISMETHOD=file
+      # metrics
+      - ORDERER_OPERATIONS_LISTENADDRESS=<%= orderer.address %>:9444
+      - ORDERER_METRICS_PROVIDER=prometheus
+      #
       <%_ if(global.capabilities.isV2) { _%>
       - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/config/<%= ordererGroup.genesisBlockName %>
       <%_ } else { _%>
@@ -206,6 +210,7 @@ services:
     working_dir: /var/hyperledger/orderer
     command: orderer
     ports:
+      - <%= orderer.port + 1000 %>:9444
       - <%= orderer.port %>:<%= orderer.port %>
     volumes:
       - ../fabric-config/config/:/var/hyperledger/config
@@ -238,6 +243,9 @@ services:
       - CORE_CHAINCODE_LOGGING_LEVEL=${LOGGING_LEVEL}
       - CORE_CHAINCODE_LOGGING_SHIM=${LOGGING_LEVEL}
       - FABRIC_LOGGING_SPEC=${LOGGING_LEVEL}
+      # metrics
+      - CORE_OPERATIONS_LISTENADDRESS=<%= peer.address %>:9440
+      - CORE_METRICS_PROVIDER=prometheus
       #
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_basic
       - CORE_VM_DOCKER_ATTACHSTDOUT=true
@@ -260,6 +268,7 @@ services:
     working_dir: /etc/hyperledger/fabric/peer/
     command: peer node start
     ports:
+      - <%= peer.port + 1000 %>:9440
       - <%= peer.port %>:<%= peer.port %>
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
@@ -329,3 +338,32 @@ services:
     networks:
       - basic
   <%_ } _%>
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    tty: true
+    volumes:
+      - ../metrics/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 4010:9090
+    networks:
+      - basic
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    environment:
+      - GF_AUTH_PROXY_ENABLED=true
+      - GF_PATHS_PROVISIONING=/var/lib/grafana/provisioning/
+    volumes:
+      - ../metrics/grafana:/var/lib/grafana/provisioning/
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    networks:
+      - basic
