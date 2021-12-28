@@ -243,9 +243,14 @@ export default class SetupDockerGenerator extends Generator {
     this.fs.copyTpl(
       this.templatePath("metrics/grafana/datasources/datasource.yml"),
       this.destinationPath("metrics/grafana/datasources/datasource.yml"),
-      {
-        orgs: config.orgs,
-      },
+    );
+    this.fs.copyTpl(
+      this.templatePath("metrics/grafana/dashboards/dashboard.json"),
+      this.destinationPath("metrics/grafana/dashboards/dashboard.json"),
+    );
+    this.fs.copyTpl(
+      this.templatePath("metrics/grafana/dashboards/dashboard.yml"),
+      this.destinationPath("metrics/grafana/dashboards/dashboard.yml"),
     );
   }
 }

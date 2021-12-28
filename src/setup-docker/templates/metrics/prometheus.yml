@@ -13,7 +13,7 @@ scrape_configs:
       - targets: ["localhost:9090"]
 
 <%_ orgs.forEach(function(org){ _%>
-#=============<%= org.name %>==========================
+  # =============<%= org.name %>==========================
   <%_ org.ordererGroups.forEach(function(ordererGroup){ _%>
   <%_ ordererGroup.orderers.forEach(function(orderer){ _%>
   - job_name: "Org: <%= org.name %>, orderer: <%= orderer.name %>"
@@ -26,6 +26,5 @@ scrape_configs:
   - job_name: "Org: <%= org.name %>, peer: <%= peer.name %>"
     static_configs:
       - targets: ["<%= peer.address %>:9440"]
-
   <%_ }) _%>
 <%_ }) _%>
