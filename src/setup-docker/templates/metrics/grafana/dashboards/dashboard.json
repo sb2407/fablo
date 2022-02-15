@@ -22,8 +22,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
-  "iteration": 1639265873616,
   "links": [
     {
       "asDropdown": false,
@@ -88,14 +86,14 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "targets": [
         {
           "datasource": "Prometheus",
           "exemplar": true,
-          "expr": "ledger_blockchain_height{job=\"orderers\"}",
+          "expr": "ledger_blockchain_height{type=\"peer\"}",
           "interval": "",
-          "legendFormat": "{{channel}}",
+          "legendFormat": "{{channel}}: {{instance}}",
           "refId": "A"
         }
       ],
@@ -108,17 +106,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -131,8 +119,7 @@
                 "value": 80
               }
             ]
-          },
-          "unit": "none"
+          }
         },
         "overrides": []
       },
@@ -146,25 +133,26 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
-        "orientation": "horizontal",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
         },
-        "textMode": "name"
+        "textMode": "auto"
       },
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "targets": [
         {
           "datasource": "Prometheus",
           "exemplar": true,
-          "expr": "fabric_version{instance=\"orderer0.group1.knf.gov.pl:9444\"} ",
+          "expr": "fabric_version{}",
+          "format": "time_series",
           "interval": "",
           "legendFormat": "{{version}}",
           "refId": "A"
@@ -217,14 +205,14 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "targets": [
         {
           "datasource": "Prometheus",
           "exemplar": true,
           "expr": "ledger_transaction_count{transaction_type=\"ENDORSER_TRANSACTION\", validation_code=\"VALID\"}",
           "interval": "",
-          "legendFormat": "{{instance}}{{channel}} ",
+          "legendFormat": "{{channel}}: {{instance}}",
           "refId": "A"
         }
       ],
@@ -286,7 +274,7 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "targets": [
         {
           "expr": "endorser_proposals_received",
@@ -353,7 +341,7 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "targets": [
         {
           "expr": "endorser_successful_proposals",
@@ -403,7 +391,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -452,7 +440,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -485,7 +472,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -495,7 +482,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "go_memstats_gc_cpu_fraction",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": true,
+          "expr": "go_memstats_gc_cpu_fraction{job!=\"prometheus\"}",
+          "interval": "",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -568,7 +562,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -659,7 +653,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -749,7 +743,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -841,14 +835,14 @@
         },
         "showUnfilled": true
       },
-      "pluginVersion": "8.3.2",
+      "pluginVersion": "8.3.6",
       "targets": [
         {
           "datasource": "Prometheus",
           "exemplar": true,
           "expr": "broadcast_processed_count{}",
           "interval": "",
-          "legendFormat": "{{type}}",
+          "legendFormat": "{{channel}}",
           "refId": "A"
         }
       ],
@@ -857,42 +851,14 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 33,
+  "schemaVersion": 34,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": true,
-          "text": "orderers",
-          "value": "orderers"
-        },
-        "datasource": "Prometheus",
-        "definition": "label_values(fabric_version, job)",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Peer",
-        "multi": false,
-        "name": "peer",
-        "options": [],
-        "query": {
-          "query": "label_values(fabric_version, job)",
-          "refId": "Prometheus-peer-Variable-Query"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      }
-    ]
+    "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -912,6 +878,6 @@
   "timezone": "",
   "title": "Blockchain Dashboard 1",
   "uid": "efMLZpCZk",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }

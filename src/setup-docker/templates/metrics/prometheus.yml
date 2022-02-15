@@ -16,15 +16,21 @@ scrape_configs:
   # =============<%= org.name %>==========================
   <%_ org.ordererGroups.forEach(function(ordererGroup){ _%>
   <%_ ordererGroup.orderers.forEach(function(orderer){ _%>
-  - job_name: "Org: <%= org.name %>, orderer: <%= orderer.name %>"
+  - job_name: "<%= org.name %>, orderer: <%= orderer.name %>"
     static_configs:
       - targets: ["<%= orderer.address %>:9444"]
+        labels:
+          org: "<%= org.name %>"
+          type: "orderer"
 
   <%_ }) _%>
   <%_ }) _%>  
   <%_ org.peers.forEach(function(peer){ _%>
-  - job_name: "Org: <%= org.name %>, peer: <%= peer.name %>"
+  - job_name: "<%= org.name %>, peer: <%= peer.name %>"
     static_configs:
       - targets: ["<%= peer.address %>:9440"]
+        labels:
+          org: "<%= org.name %>"
+          type: "peer"
   <%_ }) _%>
 <%_ }) _%>
